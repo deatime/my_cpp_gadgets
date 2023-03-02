@@ -63,7 +63,7 @@ template<typename F>
 inline constexpr int count_arg_v = count_arg<F>::value;
 
 template<typename F>
-auto curry(F&& f) { // helper function
+inline auto curry(F&& f) { // helper function
   using FF = decltype(std::function(f));
   constexpr int nargs = count_arg_v<FF>;
   // return Curry<FF, std::tuple<>, nargs>(std::forward<F>(f), std::tuple());

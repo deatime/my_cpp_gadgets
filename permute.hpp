@@ -47,7 +47,7 @@ struct Flip<std::function<R(Args...)>> {
   }
 };
 
-auto flip(auto&& func) {
+inline auto flip(auto&& func) {
   using FF = decltype(std::function(func));
   return Flip<FF>(std::make_shared<FF>(func));
 }
@@ -69,7 +69,7 @@ struct Permute<std::function<R(Args...)>, Is...> {
 };
 
 template <size_t... Is>
-auto permute(auto&& func) {
+inline auto permute(auto&& func) {
   using FF = decltype(std::function(func));
   return Permute<FF, Is...>(std::make_shared<FF>(func));
 }
