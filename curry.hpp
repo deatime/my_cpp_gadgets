@@ -13,9 +13,10 @@
 template<typename F, typename Tup, int N>
 struct Curry;
 
-template<typename F, typename Tup>
-struct Curry<F, Tup, 0> {
+template<typename F_, typename Tup>
+struct Curry<F_, Tup, 0> {
   // F f; 
+  using F = F_;
   std::shared_ptr<F> pf;
   // Curry(F&& f, Tup&&) : f(std::forward<F>(f)) {}
   Curry(std::shared_ptr<F> pf, Tup&&) : pf(pf) {}
@@ -23,9 +24,10 @@ struct Curry<F, Tup, 0> {
   auto operator()() { return (*pf)(); }
 };
 
-template<typename F, typename Tup, int N>
+template<typename F_, typename Tup, int N>
 struct Curry {
   // F f;
+  using F = F_;
   std::shared_ptr<F> pf;
   Tup t;
   // Curry(F&& f, Tup&& t): f(std::forward<F>(f)), t(std::forward<Tup>(t)) {}
