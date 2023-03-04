@@ -1,10 +1,12 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <thread>
 #include "curry.hpp"
 
 using std::cout, std::endl;
 using std::string, std::string_view;
+using namespace std::literals;
 
 int add3(int a, int b, int c) {
   return a + b + c;
@@ -77,5 +79,19 @@ int main() {
   cur_overload1(1)(2);
   cur_overload2(1)(2)(3);
   cur_overload3("hello ", "world");
+
+  // noncopy constructable callable support
+  std::thread t([]{ 
+         std::this_thread::sleep_for(1s);
+         cout << "thread finish\n"; 
+         });
+  auto noncopy_func = [_t=std::move(t)](string_view msg1, string_view msg2) mutable {
+      _t.join();
+      cout << msg1 << " " << msg2 << " " << "thread joined" << endl;
+  };
+  cout << "Can noncopy_func be copied: " << std::boolalpha << std::is_copy_constructible_v<decltype(t)> << endl;
+
+  auto cur_noncopy_func = curry(std::move(noncopy_func));
+  cur_noncopy_func("noncopy")("func");
 }
 

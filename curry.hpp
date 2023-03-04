@@ -10,10 +10,10 @@
 // if the class takes the ownership of the function
 // so I replaced it with shared_ptr
 
-template<typename F, typename Tup, int N>
+template <typename F, typename Tup, int N>
 struct Curry;
 
-template<typename F_, typename Tup>
+template <typename F_, typename Tup>
 struct Curry<F_, Tup, 0> {
   // F f; 
   using F = F_;
@@ -24,7 +24,7 @@ struct Curry<F_, Tup, 0> {
   auto operator()() { return (*pf)(); }
 };
 
-template<typename F_, typename Tup, int N>
+template <typename F_, typename Tup, int N>
 struct Curry {
   // F f;
   using F = F_;
@@ -51,23 +51,36 @@ struct Curry {
   }
 };
 
-template<typename T> // count arguments of a callable
+template <typename T> // count arguments of a callable
 struct count_arg;
 
-template<typename R, typename ...Args> 
-struct count_arg<std::function<R(Args...)>> {
+template <typename R, typename ...Args> 
+// struct count_arg<std::move_only_function<R(Args...)>> {
+struct count_arg<std::move_only_function<R(Args...)>> {
   static const size_t value = sizeof...(Args);
 };
 
-template<typename F> 
+template <typename F> 
 inline constexpr int count_arg_v = count_arg<F>::value;
 
-template<typename F>
+template <typename F>
+struct get_type;
+
+template <typename R, typename ...Args>
+struct get_type<std::function<R(Args...)>> {
+    using type = R(Args...);
+};
+
+template <typename F>
+using get_type_t = typename get_type<F>::type;
+
+template <typename F>
 inline auto curry(F&& f) { // helper function
-  using FF = decltype(std::function(f));
+  // using FF = std::move_only_function<get_type_t<decltype(std::function(f))>>;
+  using FF = std::move_only_function<get_type_t<decltype(std::function(f))>>;
   constexpr int nargs = count_arg_v<FF>;
   // return Curry<FF, std::tuple<>, nargs>(std::forward<F>(f), std::tuple());
-  return Curry<FF, std::tuple<>, nargs>(std::make_shared<FF>(f), std::tuple());
+  return Curry<FF, std::tuple<>, nargs>(std::make_shared<FF>(std::forward<F>(f)), std::tuple());
 }
 
 #endif
