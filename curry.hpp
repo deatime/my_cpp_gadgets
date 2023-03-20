@@ -21,7 +21,8 @@ struct Curry<F_, Tup, 0> {
   // Curry(F&& f, Tup&&) : f(std::forward<F>(f)) {}
   Curry(std::shared_ptr<F> pf, Tup&&) : pf(pf) {}
 
-  auto operator()() { return (*pf)(); }
+  // auto operator()() { return (*pf)(); }
+  auto operator()() { return std::invoke(*pf); }
 };
 
 template <typename F_, typename Tup, int N>
@@ -64,11 +65,22 @@ template <typename F>
 inline constexpr int count_arg_v = count_arg<F>::value;
 
 template <typename F>
-struct get_type;
+struct get_type_impl {};
 
 template <typename R, typename ...Args>
-struct get_type<std::function<R(Args...)>> {
+struct get_type_impl<std::function<R(Args...)>> {
     using type = R(Args...);
+};
+
+template <typename F>
+struct get_type {
+  F f;
+  using type = typename get_type_impl<decltype(std::function(f))>::type;
+};
+
+template <typename R, typename C, typename... Args>
+struct get_type<R(C::*)(Args...)> {
+  using type = R(C*, Args...);
 };
 
 template <typename F>
@@ -77,7 +89,8 @@ using get_type_t = typename get_type<F>::type;
 template <typename F>
 inline auto curry(F&& f) { // helper function
   // using FF = std::move_only_function<get_type_t<decltype(std::function(f))>>;
-  using FF = std::move_only_function<get_type_t<decltype(std::function(f))>>;
+  // using FF = std::move_only_function<get_type_t<decltype(std::function(f))>>;
+  using FF = std::move_only_function<get_type_t<F>>;
   constexpr int nargs = count_arg_v<FF>;
   // return Curry<FF, std::tuple<>, nargs>(std::forward<F>(f), std::tuple());
   return Curry<FF, std::tuple<>, nargs>(std::make_shared<FF>(std::forward<F>(f)), std::tuple());

@@ -38,6 +38,9 @@ public:
   A(A     && other): str(std::move(other.str)) { 
     cout << str << ":        move constructor called" << endl; 
   }
+  void func(int num) {
+    cout << str << "(" << num << ").func called" << endl;
+  }
 };
 
 class Callable {
@@ -70,6 +73,11 @@ int main() {
   auto cur_call = curry(std::move(call));
   A aa("a"), ab("b"), ac("c");
   cur_call(aa)(ab)(ac);
+
+  // memptr support
+  auto cur_memptr = curry(&A::func);
+  cur_memptr(&aa, 1);
+  cur_memptr(&ab)(2);
 
   // overloaded functions need explicit type conversion
   // auto cur_fOverload1 = curry(fOverload); // mutiple candidates
